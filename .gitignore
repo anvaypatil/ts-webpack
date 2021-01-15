@@ -1,0 +1,9 @@
+coverage
+dist
+junit.xml
+node_modules
+/.idea
+/.vscode
+*.ipr
+*.iml
+*.iws
