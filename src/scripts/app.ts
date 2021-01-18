@@ -1,10 +1,9 @@
 import '../styles/app.scss';
 
-import { Greeter } from './greeter';
+import {test as testLinkedList} from "./datastructures/linked-list"
+import {oneLiners} from "./datastructures/primitives/one-liner"
+import {testFixedBitArray} from "./datastructures/bitarray/fixed-bit-array-test"
 
-const greeter: Greeter = new Greeter('ts-webpack');
-const app = document.getElementById('app');
-if (app) {
-  greeter.start(app);
-}
-
+// testLinkedList();
+// oneLiners();
+testFixedBitArray();
