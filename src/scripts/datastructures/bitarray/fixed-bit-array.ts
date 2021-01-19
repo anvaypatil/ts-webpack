@@ -47,9 +47,11 @@ export class FixedBitArray {
     }
 
     public setBitAt(index: number): void {
-        const byteIndex = this.getByteIndex(index);
-        const offSet = this.getBitOffSet(index);
-        this.internalValues[byteIndex] = 1 << offSet;
+        if (index < this.bitLength) {
+            const byteIndex = this.getByteIndex(index);
+            const offSet = this.getBitOffSet(index);
+            this.internalValues[byteIndex] |= 1 << offSet;
+        }
     }
 
     public isBitSetAt(index: number): boolean {
@@ -68,8 +70,7 @@ export class FixedBitArray {
 
     // <<
     public leftShift(by: number): FixedBitArray {
-        const requiredBytes = this.getRequiredBytes(by + this.bitLength);
-        const resultBitArray = new FixedBitArray(requiredBytes);
+        const resultBitArray = new FixedBitArray(by + this.bitLength);
         const byteIndex = this.getByteIndex(by);
         const offset = this.getBitOffSet(by);
         const resultValues = resultBitArray.internalValues;
@@ -78,7 +79,7 @@ export class FixedBitArray {
             resultValues[i] = this.internalValues[origIndex];
             resultValues[i] <<= offset;
             if (i > byteIndex) {
-                resultValues[i] &= carryToLeft;
+                resultValues[i] |= carryToLeft;
             }
             carryToLeft = (this.internalValues[origIndex] & (255 << (8 - offset) & 255)) >> (8 - offset);
             origIndex++;
@@ -91,20 +92,19 @@ export class FixedBitArray {
         if (this.bitLength <= by) {
             return new FixedBitArray(0);
         } else {
-            const requiredBytes = this.getRequiredBytes(this.bitLength - by);
-            const resultBitArray = new FixedBitArray(requiredBytes);
+            const resultBitArray = new FixedBitArray(this.bitLength - by);
             const byteIndex = this.getByteIndex(by);
             const offset = this.getBitOffSet(by);
             const resultValues = resultBitArray.internalValues;
-            let carryRight = 0, origIndex = this.byteLength() - 1;
-            for (let i = resultValues.length - 1; i <= byteIndex; i++) {
+            let carryRight = 0, origIndex = this.internalValues.length - 1;
+            for (let i = resultValues.length - 1; i > -1; i--) {
                 resultValues[i] = this.internalValues[origIndex];
                 resultValues[i] >>= offset;
                 if (i !== resultValues.length - 1) {
-                    resultValues[i] &= carryRight;
+                    resultValues[i] |= carryRight;
                 }
-                carryRight = this.internalValues[origIndex] & (255 >> (8 - offset)) << (8 - offset);
-                origIndex++;
+                carryRight = (this.internalValues[origIndex] & (255 >> (8 - offset))) << (8 - offset);
+                origIndex--;
             }
             return resultBitArray;
         }
@@ -131,31 +131,75 @@ export class FixedBitArray {
     }
 
     public toString(): string {
-        let acc: string;
-        this.internalValues.reverse().forEach((st) => {
-            acc += Number(st).toString(2);
+        let acc: string = '';
+        let val: string = '';
+        this.internalValues.slice().reverse().forEach((st) => {
+            if (st > 0) {
+                val = Number(st).toString(2);
+                acc += ('00000000'.substr(val.length) + val) + ' ';
+            } else {
+                acc += '00000000 ';
+            }
         });
         return acc;
     }
 
     public bitwiseOr(with_: FixedBitArray): FixedBitArray {
-        return null;
+        return this.bitwiseOperation(with_, (a, b) => a | b);
     }
 
     public bitwiseAnd(with_: FixedBitArray): FixedBitArray {
-        return null;
+        return this.bitwiseOperation(with_, (a, b) => a & b);
     }
 
     public bitwiseXor(with_: FixedBitArray): FixedBitArray {
-        return null;
+        return this.bitwiseOperation(with_, (a, b) => a ^ b);
     }
 
     public reverse(): FixedBitArray {
-        return null;
+        const resultArray = new FixedBitArray(this.bitLength);
+        for (let i = 0; i < this.internalValues.length; i++) {
+            resultArray.internalValues[i] = this.reverseBits(this.internalValues[i]);
+        }
+        resultArray.internalValues.reverse();
+        const offset = this.getBitOffSet(this.bitLength);
+        console.log('off', offset);
+        console.log('rev', resultArray.toString());
+        return resultArray.rightShift(3);
     }
 
     public bitwiseNot(): FixedBitArray {
-        return null;
+        const resultArray = new FixedBitArray(this.bitLength);
+        for (let i = 0; i < resultArray.internalValues.length; i++) {
+            resultArray.internalValues[i] = ~this.internalValues[i];
+        }
+        return resultArray;
+    }
+
+    private reverseBits(b: number): number {
+        b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+        b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+        b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+        return b;
+    }
+
+    private bitwiseOperation(with_: FixedBitArray, operation: (a: number, b: number) => number) {
+        const resultBitLen = Math.max(this.bitLength, with_.bitLength);
+        const resultArray = new FixedBitArray(resultBitLen);
+        let byteLen = this.getRequiredBytes(this.bitLength);
+        let byteLen_ = this.getRequiredBytes(with_.bitLength);
+        let resultByteLen = this.getRequiredBytes(resultBitLen);
+        while (byteLen !== 0 && byteLen_ !== 0) {
+            resultArray.internalValues[--resultByteLen] =
+                operation(this.internalValues[--byteLen], with_.internalValues[--byteLen_]);
+        }
+        while (byteLen_ !== 0) {
+            resultArray.internalValues[--resultByteLen] = with_.internalValues[--byteLen_];
+        }
+        while (byteLen !== 0) {
+            resultArray.internalValues[--resultByteLen] = this.internalValues[--byteLen];
+        }
+        return resultArray;
     }
 
     private hammingWeight(num: number): number {
