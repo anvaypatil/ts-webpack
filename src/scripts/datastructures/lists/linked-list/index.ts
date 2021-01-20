@@ -1,4 +1,4 @@
-import {print, printObject} from "../../util";
+import {print, printObject} from "../../../util";
 
 export {LinkedList} from "./linked-list";
 import {LinkedList} from "./linked-list";
