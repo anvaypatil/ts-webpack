@@ -87,7 +87,7 @@ export class FixedBitArray {
         return resultBitArray;
     }
 
-    // >>
+    // >> //TODO not yet working perfect
     public rightShift(by: number): FixedBitArray {
         if (this.bitLength <= by) {
             return new FixedBitArray(0);
@@ -163,8 +163,6 @@ export class FixedBitArray {
         }
         resultArray.internalValues.reverse();
         const offset = this.getBitOffSet(this.bitLength);
-        console.log('off', offset);
-        console.log('rev', resultArray.toString());
         return resultArray.rightShift(3);
     }
 
