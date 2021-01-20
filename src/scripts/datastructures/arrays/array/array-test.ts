@@ -9,12 +9,15 @@ export function array_functions() {
 
     // copyWithin(): Copies array elements within the array, to and from specified positions
     // array.copyWithin(target, start, end)
+    // @ts-ignore
     const fruits = ["Banana", "Orange", "Apple", "Mango"];
     fruits.copyWithin(2, 0); // Mutable operation
     // ["Banana", "Orange", "Banana", "Orange"]
 
     // entries(): Returns a key/value pair Array Iteration Object
+    // @ts-ignore
     for (obj of fruits.entries()) {
+        // @ts-ignore
         console.log(obj);
     }
     // (2) [0, "Banana"]
@@ -27,11 +30,13 @@ export function array_functions() {
     const adults: boolean = ages.every((age) => age >= 18);
 
     // fill(): Fill all the array elements with a static value:
+    // @ts-ignore
     const fruits = ["Banana", "Orange", "Apple", "Mango"];
     fruits.fill("Kiwi");
     // ["Kiwi", "Kiwi", "Kiwi", "Kiwi"]
 
     // filter(): Creates a new array with every element in an array that pass a test
+    // @ts-ignore
     const adultsAges: Array = ages.filter((age) => age >= 18);
 
     // find(): Returns the value of the first element in an array that pass a test
@@ -47,6 +52,7 @@ export function array_functions() {
     const alphabets = Array.from("ABCDEFG");
 
     // flat an array
+    // @ts-ignore
     const flatArray = [1, 2, 3, 4, [6, 7, 8] [8, 9]].flat();
 
     // includes(): Check if an array contains the specified element
